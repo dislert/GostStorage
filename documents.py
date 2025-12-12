@@ -5,7 +5,7 @@ from database import get_db
 import shutil
 import uuid
 from sqlalchemy import text
-
+import os
 
 router = APIRouter(prefix="/documents")
 
@@ -92,3 +92,24 @@ def create_document(
     db.refresh(document)
 
     return document
+
+@router.delete("/delete/{document_id}")
+def delete_document(document_id: int, db: Session = Depends(get_db)):
+    # ищем запись
+    document = db.query(Document).filter(Document.id == document_id).first()
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Документ не найден")
+
+    # удаляем файл, если он есть
+    if document.file_path and os.path.exists(document.file_path):
+        try:
+            os.remove(document.file_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ошибка при удалении файла: {str(e)}")
+
+    # удаляем запись из БД
+    db.delete(document)
+    db.commit()
+
+    return {"message": "Документ успешно удалён"}

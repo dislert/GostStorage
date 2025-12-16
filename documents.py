@@ -113,3 +113,17 @@ def delete_document(document_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Документ успешно удалён"}
+
+@router.get("/search")
+def search_documents(query: str, db: Session = Depends(get_db)):
+
+    sql = text("""
+        SELECT id, standard_name, standard_title, file_path
+        FROM documents
+        WHERE search_vector @@ plainto_tsquery('russian', :q)
+        ORDER BY ts_rank(search_vector, plainto_tsquery('russian', :q)) DESC
+    """)
+
+    result = db.execute(sql, {"q": query}).mappings().all()
+
+    return list(result)

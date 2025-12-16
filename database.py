@@ -2,11 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLURL = "sqlite:///./db.sqlite3"
-
-engine = create_engine(
-    SQLURL, connect_args={"check_same_thread": False}
+SQLALCHEMY_DATABASE_URL = (
+    "postgresql+psycopg2://postgres:gostPassDb@localhost:5432/gostdb"
 )
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -18,3 +18,4 @@ def get_db():
         yield db
     finally:
         db.close()
+        
